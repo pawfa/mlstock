@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "client": "cd client && yarn start",
+    "dev": "concurrently --kill-others-on-fail \"yarn start\" \"yarn client\"",
     "start": "npm run build:live",
     "build": "tsc -p .",
     "build:live": "nodemon"
@@ -10,7 +12,9 @@
   "dependencies": {
     "@tensorflow/tfjs": "^0.14.1",
     "body-parser": "1.18.3",
+    "concurrently": "^4.1.0",
     "cookie-parser": "1.4.3",
+    "csv": "^5.0.1",
     "debug": "2.6.9",
     "express": "4.16.0",
     "http-errors": "1.6.2",
