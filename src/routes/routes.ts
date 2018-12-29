@@ -20,7 +20,8 @@ export class Routes {
             .get((_req: Request, res: Response) => {
                 new DataService()
                     .createStream()
-                    .loadData().then(
+                    .loadData()
+                    .mapData().then(
                     (data) => {
                         res.status(200).send({
                             data

@@ -5,12 +5,29 @@ import {Parser} from 'csv-parse';
 
 export class DataService {
 
-    private csvData: string[] = [];
+    private csvData: string[][] = [];
     private path: string = './src//resources/SP500.csv';
     private stream: ReadStream;
     private parser: Parser;
 
-    public configureParser = () => {
+    public createStream = () => {
+        this.stream = fs.createReadStream(this.path);
+        return this;
+    };
+
+    public loadData = () => {
+        this.stream.pipe(this.configureParser());
+        return this;
+    };
+
+    public mapData = () => {
+        return new Promise ( resolve => this.stream.on('end', () => {
+            this.csvData.shift();
+            resolve(this.dataMapper(this.csvData))
+        }))
+    };
+
+    private configureParser = () => {
         this.parser = parse({
             delimiter: ':'
         });
@@ -23,17 +40,7 @@ export class DataService {
         return this.parser;
     };
 
-    public createStream = () => {
-        this.stream = fs.createReadStream(this.path);
-        return this;
-    };
-
-    public loadData = (): Promise<string[]> => {
-         return new Promise ((resolve) => {
-            this.stream.pipe(this.configureParser()).on('end', () => {
-                resolve(this.csvData)
-            })
-        });
+    private dataMapper(csvData: string[][]): string[][] {
+        return csvData.map((data) => data[0].split(','));
     }
-
 }

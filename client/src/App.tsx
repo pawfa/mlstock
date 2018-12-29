@@ -1,9 +1,12 @@
 import * as React from 'react';
 import './App.css';
+import {Chart} from "./components/Chart";
 
-import logo from './logo.svg';
+export interface AppState {
+    data: string[][]
+}
 
-class App extends React.Component {
+class App extends React.Component<{},AppState> {
 
     public state = {
         data: []
@@ -23,12 +26,9 @@ class App extends React.Component {
         return (
             <div className="App">
                 <header className="App-header">
-                    <img src={logo} className="App-logo" alt="logo"/>
                     <h1 className="App-title">Welcome to React</h1>
                 </header>
-                <div>
-                    {this.state.data}
-                </div>
+                <Chart data={this.state.data}/>
             </div>
         );
     }
