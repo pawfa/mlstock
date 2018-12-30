@@ -3,12 +3,22 @@ import * as fs from "fs";
 import {ReadStream} from "fs";
 import {Parser} from 'csv-parse';
 
+interface CSVData {
+    dates: string[]
+    values: number[]
+}
+
 export class DataService {
 
-    private csvData: string[][] = [];
-    private path: string = './src//resources/SP500.csv';
+    private csvData: CSVData = {
+        dates: [],
+        values: []
+    };
+    private path: string = './src/resources/SP500low.csv';
     private stream: ReadStream;
     private parser: Parser;
+    private max = 0;
+    private min = Number.POSITIVE_INFINITY;
 
     public createStream = () => {
         this.stream = fs.createReadStream(this.path);
@@ -21,9 +31,8 @@ export class DataService {
     };
 
     public mapData = () => {
-        return new Promise ( resolve => this.stream.on('end', () => {
-            this.csvData.shift();
-            resolve(this.dataMapper(this.csvData))
+        return new Promise(resolve => this.stream.on('end', () => {
+            resolve(this.csvData)
         }))
     };
 
@@ -33,14 +42,50 @@ export class DataService {
         });
         this.parser.on('readable', () => {
             let record;
+            const tmpDates = [];
+            const tmpValues = [];
+            this.parser.read();
             while (record = this.parser.read()) {
-                this.csvData.push(record)
+                const splittedArr = record[0].split(',');
+                tmpDates.push(splittedArr[0]);
+                tmpValues.push(splittedArr.slice(1,-1));
+                this.findMinAndMax(splittedArr.slice(1,-1));
             }
+
+            this.csvData = {
+                dates: [].concat(...tmpDates),
+                values: [].concat(...tmpValues.map(this.dataMapper)).map(this.normalize)
+            };
         });
+
         return this.parser;
     };
 
-    private dataMapper(csvData: string[][]): string[][] {
-        return csvData.map((data) => data[0].split(','));
+    private dataMapper = (values: string[]): number[] => {
+        return values.map((elem: string) => {
+                return Number(elem);
+            }
+        )
+    };
+
+    private findMinAndMax = (record: string[]) => {
+        record.forEach((elem) => {
+            const elemNumber = Number(elem);
+            if(elemNumber > this.max) {
+                this.max = elemNumber
+            }
+            if(elemNumber < this.min) {
+                this.min = elemNumber
+            }
+        })
+    };
+
+    private normalize = (value: number): number => {
+        console.log(this.min)
+        console.log(this.max)
+        if (this.min === undefined || this.max === undefined) {
+            return value;
+        }
+        return (value - this.min) / (this.max - this.min);
     }
 }
